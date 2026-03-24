@@ -1,13 +1,22 @@
 # Barcode Scanner Android
 
-An Android application for scanning barcodes and retrieving product information.
+An Android application for scanning barcodes and retrieving product information from the OpenFoodFacts API.
 
 ## Features
 
-- Scan barcodes using the device camera.  
-- Fetch product details from online sources.  
-- Save scanned items locally.  
-- Lightweight and easy-to-use interface.  
+- Scan barcodes (EAN-13) using the device camera.  
+- Fetch product details: brand, product name, code, image, and status.  
+- Toggle visibility of fields via **Settings**.  
+- Torchlight support for scanning in low light.  
+- Lightweight and user-friendly interface.
+
+## Project Structure
+
+- **MainActivity.java** – Handles barcode scanning, API requests, and updates UI elements (`brand`, `product`, `code`, `status`, `image`).  
+- **SettingsActivity.java** – UI for toggling which fields are shown.  
+- **Settings.java** – Manages user preferences using `SharedPreferences`.  
+- **OpenFoodFactsResponse.java** – Model class for deserializing API responses.  
+- **Torchlight.java** – Handles torchlight functionality.  
 
 ## Getting Started
 
