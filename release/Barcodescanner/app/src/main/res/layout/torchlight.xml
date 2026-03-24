@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context=".Torchlight">
+
+    <EditText
+        android:id="@+id/input_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter text" />
+
+    <Button
+        android:id="@+id/start_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Start" />
+
+    <CheckBox
+        android:id="@+id/checkbox_always_on"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Always On"
+        android:layout_gravity="bottom"
+        android:layout_marginTop="20dp"/>
+
+</LinearLayout>
