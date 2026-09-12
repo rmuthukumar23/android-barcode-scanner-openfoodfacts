@@ -1,5 +1,26 @@
 <resources>
-    <string name="app_name">Barcode scanner</string>
-
+    <string name="app_name">Barcode Scanner</string>
     <string name="label_brand">Brand: %1$s</string>
+    <string name="label_product">Product: %1$s</string>
+    <string name="label_code">Code: %1$s</string>
+    <string name="label_status">Scan status: %1$s</string>
+    <string name="scan_barcode">Scan barcode</string>
+    <string name="scan_prompt">Scan an EAN-13 barcode</string>
+    <string name="scan_starting">Starting scanner</string>
+    <string name="scan_cancelled">Scan cancelled</string>
+    <string name="scan_placeholder">Product details will appear after a scan</string>
+    <string name="product_placeholder">Product</string>
+    <string name="product_image">Product image</string>
+    <string name="product_not_found">Product not found in OpenFoodFacts</string>
+    <string name="lookup_error">Could not retrieve product information</string>
+    <string name="not_available">Not available</string>
+    <string name="settings">Settings</string>
+    <string name="torchlight">Torchlight</string>
+    <string name="show_brand">Show brand</string>
+    <string name="show_product">Show product name</string>
+    <string name="show_code">Show barcode</string>
+    <string name="show_status">Show scan status</string>
+    <string name="show_image">Show product image</string>
+    <string name="use_front_camera">Use front camera</string>
+    <string name="save_close">Save and close</string>
 </resources>

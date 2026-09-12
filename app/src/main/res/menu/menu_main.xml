@@ -2,10 +2,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/menu_settings"
-        android:title="Settings"
-        android:icon="@drawable/ic_settings"/>
+        android:title="@string/settings"
+        android:icon="@drawable/ic_settings" />
     <item
         android:id="@+id/menu_torchlight"
-        android:title="Torchlight"
-        android:icon="@drawable/ic_torchlight"/>
+        android:title="@string/torchlight"
+        android:icon="@drawable/ic_torchlight" />
 </menu>

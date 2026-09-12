@@ -1,6 +1,5 @@
 package de.rohan.barcodescanner;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,7 +12,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -58,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
         Button scanButton = findViewById(R.id.scan);
         scanButton.setOnClickListener(view -> {
             clear();
-            Toast.makeText(this, "Initiating Scan", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.scan_starting, Toast.LENGTH_SHORT).show();
             launchBarcodeScanner();
         });
 
@@ -102,36 +100,32 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    @SuppressLint("")
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_settings:
-                openSettings();
-                return true;
-            case R.id.producttorchlight:
-                openTorchlight();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+        int itemId = item.getItemId();
+        if (itemId == R.id.menu_settings) {
+            openSettings();
+            return true;
+        }
+        if (itemId == R.id.menu_torchlight) {
+            openTorchlight();
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
     private void openSettings() {
-        Toast.makeText(this, "Opened Settings", Toast.LENGTH_LONG).show();
         startActivity(new Intent(this, SettingsActivity.class));
     }
 
     private void openTorchlight() {
-        Toast.makeText(this, "Opened Torchlight", Toast.LENGTH_LONG).show();
-        startActivity(new Intent(this, Torchlight.class)); // Ensure the class name is correct
+        startActivity(new Intent(this, Torchlight.class));
     }
 
     private void launchBarcodeScanner() {
         ScanOptions options = new ScanOptions();
         options.setDesiredBarcodeFormats(ScanOptions.EAN_13);
-        options.setPrompt("Scan a barcode");
+        options.setPrompt(getString(R.string.scan_prompt));
         options.setBeepEnabled(true);
         options.setBarcodeImageEnabled(true);
         options.setOrientationLocked(true);
@@ -139,24 +133,24 @@ public class MainActivity extends AppCompatActivity {
         barcodeLauncher.launch(options);
     }
 
-    private final ActivityResultLauncher<ScanOptions> barcodeLauncher = registerForActivityResult(new ScanContract(),
-            result -> {
+    private final ActivityResultLauncher<ScanOptions> barcodeLauncher = registerForActivityResult(
+            new ScanContract(), result -> {
                 if (result.getContents() == null) {
-                    Toast.makeText(this, "Cancelled", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, R.string.scan_cancelled, Toast.LENGTH_LONG).show();
                 } else {
                     handleScanResult(result.getContents());
                 }
             });
 
     private void handleScanResult(String scannedCode) {
-        Toast.makeText(this, "Scanned: " + scannedCode, Toast.LENGTH_LONG).show();
         new Thread(() -> {
             try {
                 productInfo = getData(scannedCode);
-                Log.d(LOGTAG, "productInfo: " + productInfo);
+                Log.d(LOGTAG, "Product response received");
                 runOnUiThread(() -> updateProductInfo(productInfo));
             } catch (IOException e) {
-                runOnUiThread(() -> Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                Log.e(LOGTAG, "Product lookup failed", e);
+                runOnUiThread(() -> Toast.makeText(this, R.string.lookup_error, Toast.LENGTH_LONG).show());
             }
         }).start();
     }
@@ -164,35 +158,58 @@ public class MainActivity extends AppCompatActivity {
     private void updateProductInfo(String productInfoJson) {
         Moshi moshi = new Moshi.Builder().build();
         JsonAdapter<OpenFoodFactsResponse> jsonAdapter = moshi.adapter(OpenFoodFactsResponse.class);
-        OpenFoodFactsResponse response;
+
         try {
-            response = jsonAdapter.fromJson(productInfoJson);
+            OpenFoodFactsResponse response = jsonAdapter.fromJson(productInfoJson);
+            if (response == null || response.product == null || response.status == null
+                    || !response.status.toLowerCase(Locale.ROOT).startsWith("success")) {
+                showProductNotFound();
+                return;
+            }
+
+            brand.setText(getString(R.string.label_brand, displayValue(response.product.brands)));
+            product.setText(getString(R.string.label_product, displayValue(response.product.product_name)));
+            code.setText(getString(R.string.label_code, displayValue(response.product.code)));
+            status.setText(getString(R.string.label_status, response.status));
+
+            if (response.product.image_url != null && !response.product.image_url.isEmpty()) {
+                Ion.with(this)
+                        .load(response.product.image_url)
+                        .withBitmap()
+                        .intoImageView(image);
+            } else {
+                image.setImageBitmap(null);
+            }
         } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        if (response != null && "success".equalsIgnoreCase(response.status)) {
-            brand.setText("Brand: " + response.product.brands);
-            product.setText(String.format(Locale.getDefault(), getString(R.string.label_brand), response.product.product_name));
-            code.setText("Code: " + response.product.code);
-            status.setText("Scan status: " + response.status);
-
-            Ion.with(this)
-                    .load(response.product.image_url)
-                    .withBitmap()
-                    .intoImageView(image);
-        } else {
-            Toast.makeText(this, "Product not in database", Toast.LENGTH_LONG).show();
-            product.setText("Error");
-            code.setText("This product isn't part of our database");
+            Log.e(LOGTAG, "Could not parse product response", e);
+            Toast.makeText(this, R.string.lookup_error, Toast.LENGTH_LONG).show();
         }
     }
 
+    private String displayValue(String value) {
+        return value == null || value.trim().isEmpty() ? getString(R.string.not_available) : value;
+    }
+
+    private void showProductNotFound() {
+        Toast.makeText(this, R.string.product_not_found, Toast.LENGTH_LONG).show();
+        product.setText(R.string.product_not_found);
+        code.setText("");
+        status.setText("");
+        image.setImageBitmap(null);
+    }
+
     private String getData(String code) throws IOException {
-        String url = "https://world.openfoodfacts.org/api/v3/product/" + code + ".json?fields=brands,product_name,code,image_url";
-        Request request = new Request.Builder().url(url).build();
+        String url = "https://world.openfoodfacts.org/api/v3/product/" + code
+                + ".json?fields=brands,product_name,code,image_url";
+        Request request = new Request.Builder()
+                .url(url)
+                .header("User-Agent", "BarcodeScanner/1.0 (https://github.com/rmuthukumar23/android-barcode-scanner-openfoodfacts)")
+                .build();
 
         try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful() || response.body() == null) {
+                throw new IOException("OpenFoodFacts returned HTTP " + response.code());
+            }
             return response.body().string();
         }
     }
